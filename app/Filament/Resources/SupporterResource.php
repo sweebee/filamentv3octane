@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SupporterResource\Pages;
 use App\Filament\Resources\SupporterResource\RelationManagers;
+use App\Models\Group;
 use App\Models\Supporter;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -28,7 +29,18 @@ class SupporterResource extends Resource
                         Forms\Components\TextInput::make('first_name')->label('Voornaam')->required(),
                         Forms\Components\TextInput::make('last_name')->label('Achternaam')->required(),
                     ]),
-                    Forms\Components\Select::make('group_id')->relationship('group', 'name')->label('Groep')
+                    Forms\Components\Select::make('group_id')
+                                           ->options(Group::pluck('name', 'id'))
+                                           ->createOptionForm([
+                                               Forms\Components\TextInput::make('name')->label('Naam'),
+                                           ])
+                                           ->createOptionUsing(function($data){
+                                                $group = new Group();
+                                                $group->name = $data['name'];
+                                                $group->save();
+                                                return $group->id;
+                                           })
+                                           ->label('Groep')
                 ]),
                 Forms\Components\Section::make('Contactgegevens')->schema([
                     Forms\Components\TextInput::make('email')->label('E-mailadres')->email()->required(),
